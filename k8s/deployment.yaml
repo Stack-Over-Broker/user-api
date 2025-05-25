@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usuario-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usuario-service
+  template:
+    metadata:
+      labels:
+        app: usuario-service
+    spec:
+      containers:
+        - name: usuario-service
+          image: usuario-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_URI
