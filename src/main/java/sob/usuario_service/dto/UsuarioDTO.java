@@ -22,4 +22,12 @@ public class UsuarioDTO {
         dto.setPerfilInvestidor(usuario.getPerfilInvestidor());
         return dto;
     }
+
+    public static Usuario toEntity(UsuarioDTO dto) {
+        Usuario usuario = new Usuario();
+        usuario.setNome(dto.getNome());
+        usuario.setEmail(dto.getEmail());
+        usuario.setPerfilInvestidor(dto.getPerfilInvestidor());
+        return usuario;
+    }
 }

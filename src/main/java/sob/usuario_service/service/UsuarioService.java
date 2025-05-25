@@ -1,10 +1,10 @@
 package sob.usuario_service.service;
 
+import com.amazonaws.services.eks.model.NotFoundException;
+import com.sob.CoreApi.cache.CacheService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import sob.usuario_service.cache.RedisService;
 import sob.usuario_service.dto.UsuarioDTO;
 import sob.usuario_service.model.Usuario;
 import sob.usuario_service.repository.UsuarioRepository;
@@ -17,38 +17,32 @@ import java.util.Optional;
 @Service
 public class UsuarioService {
 
-    private final UsuarioRepository repository;
-    private final RedisService redisService;
+    private final UsuarioRepository usuarioRepository;
+    private final CacheService<UsuarioDTO> cacheService;
 
     public UsuarioDTO buscarUsuarioPorEmail(String email) {
-        UsuarioDTO usuarioCacheado = redisService.buscarUsuarioCacheado(email);
-        if (usuarioCacheado != null) {
-            System.out.println("Usuario encontrado no cache");
-            return usuarioCacheado;
-        }
-
-        Optional<Usuario> usuarioBanco = repository.findByEmail(email);
-        if (usuarioBanco.isPresent()) {
-            UsuarioDTO dto = UsuarioDTO.fromModel(usuarioBanco.get());
-            redisService.cachearUsuario(dto);
-            return dto;
-        }
-
-        throw new IllegalArgumentException("Nenhum usuario encontrado");
+        System.out.println(("[SERVICE] Buscando usuário com e-mail: " + email));
+        return cacheService.get(email).orElseThrow(() -> {
+            System.out.printf("[SERVICE] Usuário com e-mail: %s não encontrado", email);
+            return new NotFoundException("Usuário não encontrado");
+        });
     }
 
-    public Usuario criarUsuario(UsuarioDTO dto) {
-        Optional<Usuario> email = repository.findByEmail(dto.getEmail());
-        if (email.isPresent()) {
-            throw new IllegalArgumentException("Email já cadastrado");
-        }
-        Usuario novoUsuario = Usuario.builder()
-                .nome(dto.getNome())
-                .email(dto.getEmail())
-                .perfilInvestidor(dto.getPerfilInvestidor())
-                .criadoEm(LocalDate.now())
-                .build();
-        return repository.save(novoUsuario);
+    public void criarUsuario(UsuarioDTO dto) {
+        Usuario usuario = UsuarioDTO.toEntity(dto);
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+        cacheService.put(usuarioSalvo.getEmail(), UsuarioDTO.fromModel(usuarioSalvo));
+    }
+
+    public void atualizarUsuario(UsuarioDTO dto) {
+        Usuario usuario = UsuarioDTO.toEntity(dto);
+        Usuario atualizado = usuarioRepository.save(usuario);
+        cacheService.put(atualizado.getEmail(), UsuarioDTO.fromModel(atualizado));
+    }
+
+    public void deletarUsuario(String email) {
+        usuarioRepository.deleteByEmail(email);
+        cacheService.evict(email);
     }
 }
 
