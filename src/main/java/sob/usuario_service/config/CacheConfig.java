@@ -25,7 +25,9 @@ public class CacheConfig {
                 redisTemplate,
                 objectMapper,
                 key -> {
-                    Usuario usuario = usuarioRepository.findByEmail(key);
+                    System.out.println("[FALLBACK - DATABASE] Buscando usuário no banco para chave: " + key);
+                    Usuario usuario = usuarioRepository.findByEmail(key)
+                            .orElse(null);
                     return  usuario != null ? UsuarioDTO.fromModel(usuario) : null;
                 },
                 UsuarioDTO.class,
