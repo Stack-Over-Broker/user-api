@@ -31,19 +31,23 @@ UsuarioDTO usuarioCacheado = redisService.buscarUsuarioCacheado(email);
 A requisição de cadastro é encaminhada para uma fila SQS. Um consumidor interno do próprio serviço processa a mensagem, validando e persistindo o usuário no MongoDB:
 
 ```java
-public Usuario criarUsuario(UsuarioDTO dto) {
-    Optional<Usuario> email = repository.findByEmail(dto.getEmail());
-    if (email.isPresent()) {
-        throw new IllegalArgumentException("Email já cadastrado");
+public void criarUsuario(UsuarioDTO dto) {
+        Optional<UsuarioDTO> cacheado = cacheService.get(dto.getEmail());
+        if (cacheado.isPresent()) {
+            System.out.println("Usuário já cadastrado (cache): " + dto.getEmail());
+            return;
+        }
+
+        Optional<Usuario> existente = usuarioRepository.findByEmail(dto.getEmail());
+        if (existente.isPresent()) {
+            System.out.println("Usuário com email " + dto.getEmail() + "já cadastrado");
+            return;
+        }
+
+        Usuario usuario = UsuarioDTO.toEntity(dto);
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+        cacheService.put(usuarioSalvo.getEmail(), UsuarioDTO.fromModel(usuarioSalvo));
     }
-    Usuario novoUsuario = Usuario.builder()
-        .nome(dto.getNome())
-        .email(dto.getEmail())
-        .perfilInvestidor(dto.getPerfilInvestidor())
-        .criadoEm(LocalDate.now())
-        .build();
-    return repository.save(novoUsuario);
-}
 ```
 
 ## Endpoints Sugeridos
