@@ -2,10 +2,14 @@ package sob.usuario_service.component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.Data;
+import org.bson.json.JsonObject;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 import sob.usuario_service.dto.UsuarioDTO;
+import sob.usuario_service.dto.UsuarioQueueMessage;
 import sob.usuario_service.repository.UsuarioRepository;
 import sob.usuario_service.service.UsuarioService;
 
@@ -18,15 +22,26 @@ public class UsuarioQueueConsumer {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @SqsListener("${aws.sqs.queue-name}")
-    public void listen(String message) throws JsonProcessingException {
+    public void listen(String message) {
         try {
-            System.out.println("Mensagem recebida da fila " + message);
-            UsuarioDTO usuario = objectMapper.readValue(message, UsuarioDTO.class);
+            UsuarioQueueMessage queueMessage = objectMapper.readValue(message, UsuarioQueueMessage.class);
 
-            System.out.println("Cadastrando usuario " + usuario);
-            usuarioService.criarUsuario(usuario);
-        } catch (JsonProcessingException error) {
-            error.printStackTrace();
+            System.out.println("Mensagem recebida: " + message);
+
+            switch (queueMessage.getAcao()) {
+                case "CADASTRAR_USUARIO":
+                    usuarioService.criarUsuario(queueMessage.getDados());
+                    break;
+                case "ATUALIZAR_USUARIO":
+                    ObjectId usuarioId = new ObjectId(queueMessage.getUsuarioId());
+                    usuarioService.atualizarUsuario(usuarioId, queueMessage.getDados());
+                    break;
+                default:
+                    System.out.println("Ação desconhecida: " + queueMessage.getAcao());
+            }
+        } catch (JsonProcessingException e) {
+            System.err.println("Erro ao processar mensagem da fila: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
