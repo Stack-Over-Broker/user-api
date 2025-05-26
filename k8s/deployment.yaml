@@ -21,6 +21,48 @@ spec:
           env:
             - name: MONGO_URI
               valueFrom:
-                secretKeyRef:
-                  name: mongo-secret
+                configMapKeyRef:
+                  name: usuario-config
                   key: MONGO_URI
+
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: usuario-config
+                  key: AWS_REGION
+
+            - name: SQS_QUEUE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: usuario-config
+                  key: SQS_QUEUE_NAME
+
+            - name: SQS_QUEUE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: usuario-config
+                  key: SQS_QUEUE_URL
+
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: usuario-secrets
+                  key: AWS_ACCESS_KEY_ID
+
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: usuario-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+
+            - name: SPRING_REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: usuario-config
+                  key: SPRING_REDIS_HOST
+
+            - name: SPRING_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: usuario-config
+                  key: SPRING_REDIS_PORT

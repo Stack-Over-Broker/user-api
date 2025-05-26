@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.time.LocalDate;
 
@@ -23,6 +24,7 @@ public class Usuario {
     private String nome;
 
     @Email
+    @Indexed(unique = true)
     private String email;
     private TipoPerfil perfilInvestidor;
     private LocalDate criadoEm = LocalDate.now();
