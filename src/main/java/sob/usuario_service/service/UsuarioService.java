@@ -3,6 +3,7 @@ package sob.usuario_service.service;
 import com.sob.CoreApi.cache.CacheService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,19 +30,36 @@ public class UsuarioService {
     }
 
     public void criarUsuario(UsuarioDTO dto) {
+        Optional<UsuarioDTO> cacheado = cacheService.get(dto.getEmail());
+        if (cacheado.isPresent()) {
+            System.out.println("Usuário já cadastrado (cache): " + dto.getEmail());
+            return;
+        }
+
         Optional<Usuario> existente = usuarioRepository.findByEmail(dto.getEmail());
         if (existente.isPresent()) {
             System.out.println("Usuário com email " + dto.getEmail() + "já cadastrado");
             return;
         }
+
         Usuario usuario = UsuarioDTO.toEntity(dto);
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
         cacheService.put(usuarioSalvo.getEmail(), UsuarioDTO.fromModel(usuarioSalvo));
     }
 
-    public void atualizarUsuario(UsuarioDTO dto) {
-        Usuario usuario = UsuarioDTO.toEntity(dto);
-        Usuario atualizado = usuarioRepository.save(usuario);
+    public void atualizarUsuario(ObjectId usuarioId, UsuarioDTO dto) {
+        Optional<Usuario> existente = usuarioRepository.findByEmail(dto.getEmail());
+        if (existente.isPresent() && !existente.get().getId().equals(usuarioId.toHexString())) {
+            throw new RuntimeException("Email já cadastrado por outro usuário.");
+        }
+
+        Usuario usuarioExistente = usuarioRepository.findById(usuarioId.toHexString())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id: " + usuarioId));
+        usuarioExistente.setNome(dto.getNome());
+        usuarioExistente.setEmail(dto.getEmail());
+        usuarioExistente.setPerfilInvestidor(dto.getPerfilInvestidor());
+
+        Usuario atualizado = usuarioRepository.save(usuarioExistente);
         cacheService.put(atualizado.getEmail(), UsuarioDTO.fromModel(atualizado));
     }
 
