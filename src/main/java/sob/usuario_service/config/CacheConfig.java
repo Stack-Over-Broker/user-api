@@ -1,8 +1,8 @@
 package sob.usuario_service.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sob.CoreApi.cache.CacheService;
-import com.sob.CoreApi.cache.RedisCacheService;
+import com.sob.core_api.cache.CacheService;
+import com.sob.core_api.cache.RedisCacheService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;

@@ -6,7 +6,6 @@ import sob.usuario_service.model.Usuario;
 
 @Setter
 @Getter
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
