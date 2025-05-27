@@ -23,9 +23,10 @@ public class UsuarioProducerService {
         this.sqsClient = sqsClient;
     }
 
-    public void filaCadastroUsuarios(UsuarioDTO usuarioDTO){
+    public void filaCadastroUsuarios(UsuarioDTO usuarioDTO, ObjectId trackingId){
         Map<String, Object> payload = new HashMap<>();
         payload.put("acao", AcoesFila.CADASTRAR_USUARIO);
+        payload.put("trackingId", trackingId.toHexString());
         payload.put("dados", usuarioDTO);
 
         String json = new Gson().toJson(payload);
@@ -35,9 +36,10 @@ public class UsuarioProducerService {
         sqsClient.sendMessage(request);
     }
 
-    public UsuarioDTO filaAtualizacoesUsuario(ObjectId usuarioId, UsuarioDTO usuarioDTO){
+    public void filaAtualizacoesUsuario(ObjectId usuarioId, UsuarioDTO usuarioDTO, ObjectId trackingId){
         Map<String, Object> payload = new HashMap<>();
         payload.put("acao", AcoesFila.ATUALIZAR_USUARIO);
+        payload.put("trackingId", trackingId.toHexString());
         payload.put("usuarioId", usuarioId.toHexString());
         payload.put("dados", usuarioDTO);
 
@@ -46,6 +48,5 @@ public class UsuarioProducerService {
                 .withQueueUrl(queueUrl)
                 .withMessageBody(json);
         sqsClient.sendMessage(request);
-        return usuarioDTO;
     }
 }

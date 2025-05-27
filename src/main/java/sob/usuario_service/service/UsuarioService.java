@@ -1,6 +1,6 @@
 package sob.usuario_service.service;
 
-import com.sob.CoreApi.cache.CacheService;
+import com.sob.core_api.cache.CacheService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bson.types.ObjectId;
@@ -30,10 +30,8 @@ public class UsuarioService {
     }
 
     public void criarUsuario(UsuarioDTO dto) {
-        Optional<UsuarioDTO> cacheado = cacheService.get(dto.getEmail());
-        if (cacheado.isPresent()) {
-            System.out.println("Usuário já cadastrado (cache): " + dto.getEmail());
-            return;
+        if (dto.getEmail() == null || dto.getNome() == null || dto.getPerfilInvestidor() == null) {
+            throw new IllegalArgumentException("Campos obrigatórios ausentes no DTO");
         }
 
         Optional<Usuario> existente = usuarioRepository.findByEmail(dto.getEmail());
@@ -49,11 +47,11 @@ public class UsuarioService {
 
     public void atualizarUsuario(ObjectId usuarioId, UsuarioDTO dto) {
         Optional<Usuario> existente = usuarioRepository.findByEmail(dto.getEmail());
-        if (existente.isPresent() && !existente.get().getId().equals(usuarioId.toHexString())) {
+        if (existente.isPresent()) {
             throw new RuntimeException("Email já cadastrado por outro usuário.");
         }
 
-        Usuario usuarioExistente = usuarioRepository.findById(usuarioId.toHexString())
+        Usuario usuarioExistente = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id: " + usuarioId));
         usuarioExistente.setNome(dto.getNome());
         usuarioExistente.setEmail(dto.getEmail());
