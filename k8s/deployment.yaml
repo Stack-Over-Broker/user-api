@@ -54,15 +54,3 @@ spec:
                 secretKeyRef:
                   name: usuario-secrets
                   key: AWS_SECRET_ACCESS_KEY
-
-            - name: SPRING_REDIS_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: usuario-config
-                  key: SPRING_REDIS_HOST
-
-            - name: SPRING_REDIS_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: usuario-config
-                  key: SPRING_REDIS_PORT

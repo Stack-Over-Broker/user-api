@@ -4,8 +4,8 @@ spring:
       uri: "${MONGO_URI}"
       auto-index-creation: true
   redis:
-    host: "${SPRING_REDIS_HOST:redis}"
-    port: "${SPRING_REDIS_PORT:6379}"
+    host: redis
+    port: 6379
 
 server:
   port: 8080
@@ -24,3 +24,7 @@ cloud:
       secret-key: "${AWS_SECRET_ACCESS_KEY}"
     region:
       static: "${AWS_REGION}"
+logging:
+  level:
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: DEBUG
